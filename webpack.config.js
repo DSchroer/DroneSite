@@ -1,5 +1,5 @@
 module.exports = {
-  mode: "production",
+  mode: "development",
   entry: [
     "./src/3dmodel.ts",
     "./src/index.html",
@@ -17,6 +17,9 @@ module.exports = {
         },
       },
     ],
+  },
+  resolve: {
+    extensions: [".ts"],
   },
   performance: {
     hints: false,

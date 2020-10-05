@@ -1,4 +1,3 @@
-// @ts-check
 import {
   PerspectiveCamera,
   Scene,
@@ -13,13 +12,9 @@ import {
   GammaEncoding,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-
-interface Vector {
-  X: number;
-  Y: number;
-  Z: number;
-}
+import { loadModel } from "./loader";
+import { manifestValue } from "./manifest";
+import { Vector } from "./vector";
 
 let container: HTMLElement;
 let camera: PerspectiveCamera;
@@ -31,6 +26,7 @@ const HEIGHT = 600;
 
 function init(
   model: string,
+  material: string,
   grid: boolean,
   rotate: Vector,
   translate: Vector,
@@ -53,21 +49,8 @@ function init(
 
   DefaultLoadingManager.onError = (err) =>
     console.error(`Filed to load ${err}`);
-
-  var mtlLoader = new GLTFLoader();
-  mtlLoader.load(model, function (model) {
-    model.scene.rotateX(rotate.X * MathUtils.DEG2RAD);
-    model.scene.rotateY(rotate.Y * MathUtils.DEG2RAD);
-    model.scene.rotateZ(rotate.Z * MathUtils.DEG2RAD);
-
-    model.scene.translateX(translate.X);
-    model.scene.translateY(translate.Y);
-    model.scene.translateZ(translate.Z);
-
-    model.scene.scale.set(scale.X, scale.Y, scale.Z);
-
-    scene.add(model.scene);
-  });
+    
+  loadModel(model, material, scene, rotate, translate, scale);
 
   renderer = new WebGLRenderer();
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -109,6 +92,7 @@ function render() {
 
   const title = manifestValue(manifest, "title");
   const model = manifestValue(manifest, "model");
+  const material = manifestValue(manifest, "material");
   const grid = manifestValue(manifest, "grid", (value) => value == "true");
 
   const pInt = (value: string) => Number.parseFloat(value || "0");
@@ -141,15 +125,6 @@ function render() {
     el.innerHTML = title;
   }
 
-  init(model, grid, rotate, translate, scale, light);
+  init(model, material, grid, rotate, translate, scale, light);
   animate();
 })();
-
-function manifestValue<T = string>(
-  manifest: string,
-  key: string,
-  parser?: (dat: string) => T
-): T {
-  const value = new RegExp(`${key}=(.*)`).exec(manifest)![1];
-  return (parser ? parser(value) : value) as T;
-}
